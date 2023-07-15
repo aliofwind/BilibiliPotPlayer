@@ -28,7 +28,7 @@ string cookie = "";
 int uid = 0;
 bool enable_subtitle = true;
 string subtitle_host = "https://subtitle.chen310.repl.co";
-string danmaku_url = subtitle_host +  "/subtitle?font=" + HostUrlEncode("微软雅黑") + "&font_size=30.0&alpha=0.8&is_reduce_comments=false&cid=";
+string danmaku_url = subtitle_host +  "/subtitle?font=" + HostUrlEncode("黑体") + "&font_size=18.0&is_reduce_comments=false&cid=";
 string subtitle_url = subtitle_host + "/subtitle?url=";
 // 是否可选择画质
 bool enable_qualities = true;
