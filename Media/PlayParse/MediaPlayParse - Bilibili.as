@@ -429,7 +429,7 @@ string Video(string bvid, const string &in path, dictionary &MetaData, array<dic
 					flacquality = formatFloat(data["dash"]["flac"]["audio"]["bandwidth"].asInt() / 1000.0, "", 0, 1) + "K";
 					dictionary flacqualityitem;
 					flacqualityitem["url"] = data["dash"]["flac"]["audio"]["baseUrl"].asString();
-					flacqualityitem["quality"] = "FLAC" +flacquality;
+					flacqualityitem["quality"] = "FLAC " +flacquality;
 					flacqualityitem["qualityDetail"] = flacqualityitem["quality"];
 					flacqualityitem["itag"] = 258;
 					QualityList.insertLast(flacqualityitem);
