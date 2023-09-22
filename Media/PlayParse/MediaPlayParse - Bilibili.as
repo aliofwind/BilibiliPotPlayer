@@ -45,6 +45,7 @@ void OnInitialize() {
 }
 
 string host = "https://api.bilibili.com";
+string mixin_key;
 
 string GetTitle() {
 	return "Bilibili";
@@ -177,6 +178,49 @@ string apiPost(string api, string data="") {
 	return post(host + api);
 }
 
+string getMixinKey() {
+	JsonReader Reader;
+	JsonValue Root;
+	string key = "";
+	string res = apiPost("/x/web-interface/nav");
+	if (Reader.parse(res, Root) && Root.isObject()) {
+		if (Root["code"].isInt()) {
+			JsonValue wbi_img = Root["data"]["wbi_img"];
+			string img_url = wbi_img["img_url"].asString();
+			string sub_url = wbi_img["sub_url"].asString();
+			array<string> parts = img_url.split("/");
+			string img_value = parts[parts.length() - 1].split(".")[0];
+			parts = sub_url.split("/");
+			string sub_value = parts[parts.length() - 1].split(".")[0];
+			string ae = img_value + sub_value;
+			array<int> oe = {46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49, 33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40, 61, 26, 17, 0, 1, 60, 51, 30, 4, 22, 25, 54, 21, 56, 59, 6, 63, 57, 62, 11, 36, 20, 34, 44, 52};
+			for (int i = 0; i < oe.length(); i++) {
+				key += ae.substr(oe[i], 1);
+			}
+		}
+	}
+	if (key.empty()) {
+		return key;
+	}
+	return key.substr(0,32);
+}
+
+string encWbi(string params) {
+	if (mixin_key.empty()) {
+		mixin_key = getMixinKey();
+	}
+	array<string> lst = params.split("&");
+	lst.sortAsc();
+	string newParams;
+	for (uint i = 0; i < lst.length(); i++)
+	{
+		newParams += lst[i];
+		if (i != lst.length() - 1)
+			newParams += "&";
+	}
+	return HostHashMD5(newParams + mixin_key);
+}
+
 uint gettid(string path) {
 	array<string> urls = { 'www.bilibili.com/v/anime/serial', 'www.bilibili.com/v/anime/finish', 'www.bilibili.com/v/anime/information', 'www.bilibili.com/v/anime/offical', 'www.bilibili.com/anime', 'www.bilibili.com/movie', 'www.bilibili.com/v/guochuang/chinese', 'www.bilibili.com/v/guochuang/original', 'www.bilibili.com/v/guochuang/puppetry', 'www.bilibili.com/v/guochuang/motioncomic', 'www.bilibili.com/v/guochuang/information', 'www.bilibili.com/guochuang', 'www.bilibili.com/tv', 'www.bilibili.com/documentary', 'www.bilibili.com/v/douga/mad', 'www.bilibili.com/v/douga/mmd', 'www.bilibili.com/v/douga/voice', 'www.bilibili.com/v/douga/garage_kit', 'www.bilibili.com/v/douga/tokusatsu', 'www.bilibili.com/v/douga/acgntalks', 'www.bilibili.com/v/douga/other', 'www.bilibili.com/v/douga', 'www.bilibili.com/v/game/stand_alone', 'www.bilibili.com/v/game/esports', 'www.bilibili.com/v/game/mobile', 'www.bilibili.com/v/game/online', 'www.bilibili.com/v/game/board', 'www.bilibili.com/v/game/gmv', 'www.bilibili.com/v/game/music', 'www.bilibili.com/v/game/mugen', 'www.bilibili.com/v/game', 'www.bilibili.com/v/kichiku/guide', 'www.bilibili.com/v/kichiku/mad', 'www.bilibili.com/v/kichiku/manual_vocaloid', 'www.bilibili.com/v/kichiku/theatre', 'www.bilibili.com/v/kichiku/course', 'www.bilibili.com/v/kichiku', 'www.bilibili.com/v/music/original', 'www.bilibili.com/v/music/cover', 'www.bilibili.com/v/music/perform', 'www.bilibili.com/v/music/vocaloid', 'www.bilibili.com/v/music/live', 'www.bilibili.com/v/music/mv', 'www.bilibili.com/v/music/commentary', 'www.bilibili.com/v/music/tutorial', 'www.bilibili.com/v/music/other', 'www.bilibili.com/v/music', 'www.bilibili.com/v/dance/otaku', 'www.bilibili.com/v/dance/hiphop', 'www.bilibili.com/v/dance/star', 'www.bilibili.com/v/dance/china', 'www.bilibili.com/v/dance/three_d', 'www.bilibili.com/v/dance/demo', 'www.bilibili.com/v/dance', 'www.bilibili.com/v/cinephile/cinecism', 'www.bilibili.com/v/cinephile/montage', 'www.bilibili.com/v/cinephile/shortfilm', 'www.bilibili.com/v/cinephile/trailer_info', 'www.bilibili.com/v/cinephile', 'www.bilibili.com/v/ent/variety', 'www.bilibili.com/v/ent/talker', 'www.bilibili.com/v/ent/fans', 'www.bilibili.com/v/ent/celebrity', 'www.bilibili.com/v/ent', 'www.bilibili.com/v/knowledge/science', 'www.bilibili.com/v/knowledge/social_science', 'www.bilibili.com/v/knowledge/humanity_history', 'www.bilibili.com/v/knowledge/business', 'www.bilibili.com/v/knowledge/campus', 'www.bilibili.com/v/knowledge/career', 'www.bilibili.com/v/knowledge/design', 'www.bilibili.com/v/knowledge/skill', 'www.bilibili.com/v/knowledge', 'www.bilibili.com/v/tech/digital', 'www.bilibili.com/v/tech/application', 'www.bilibili.com/v/tech/computer_tech', 'www.bilibili.com/v/tech/industry', 'www.bilibili.com/v/tech', 'www.bilibili.com/v/information/hotspot', 'www.bilibili.com/v/information/global', 'www.bilibili.com/v/information/social', 'www.bilibili.com/v/information/multiple', 'www.bilibili.com/v/information', 'www.bilibili.com/v/food/make', 'www.bilibili.com/v/food/detective', 'www.bilibili.com/v/food/measurement', 'www.bilibili.com/v/food/rural', 'www.bilibili.com/v/food/record', 'www.bilibili.com/v/food', 'www.bilibili.com/v/life/funny', 'www.bilibili.com/v/life/parenting', 'www.bilibili.com/v/life/travel', 'www.bilibili.com/v/life/rurallife', 'www.bilibili.com/v/life/home', 'www.bilibili.com/v/life/handmake', 'www.bilibili.com/v/life/painting', 'www.bilibili.com/v/life/daily', 'www.bilibili.com/v/life', 'www.bilibili.com/v/car/racing', 'www.bilibili.com/v/car/modifiedvehicle', 'www.bilibili.com/v/car/newenergyvehicle', 'www.bilibili.com/v/car/touringcar', 'www.bilibili.com/v/car/motorcycle', 'www.bilibili.com/v/car/strategy', 'www.bilibili.com/v/car/life', 'www.bilibili.com/v/car', 'www.bilibili.com/v/fashion/makeup', 'www.bilibili.com/v/fashion/cos', 'www.bilibili.com/v/fashion/clothing', 'www.bilibili.com/v/fashion/trend', 'www.bilibili.com/v/fashion', 'www.bilibili.com/v/sports/basketball', 'www.bilibili.com/v/sports/football', 'www.bilibili.com/v/sports/aerobics', 'www.bilibili.com/v/sports/athletic', 'www.bilibili.com/v/sports/culture', 'www.bilibili.com/v/sports/comprehensive', 'www.bilibili.com/v/sports', 'www.bilibili.com/v/animal/cat', 'www.bilibili.com/v/animal/dog', 'www.bilibili.com/v/animal/reptiles', 'www.bilibili.com/v/animal/wild_animal', 'www.bilibili.com/v/animal/second_edition', 'www.bilibili.com/v/animal/animal_composite', 'www.bilibili.com/v/animal', 'www.bilibili.com/v/life/funny', 'www.bilibili.com/v/game/stand_alone' };
 	array<uint> tids = { 33, 32, 51, 152, 13, 23, 153, 168, 169, 195, 170, 167, 11, 177, 24, 25, 47, 210, 86, 253, 27, 1, 17, 171, 172, 65, 173, 121, 136, 19, 4, 22, 26, 126, 216, 127, 119, 28, 31, 59, 30, 29, 193, 243, 244, 130, 3, 20, 198, 199, 200, 154, 156, 129, 182, 183, 85, 184, 181, 71, 241, 242, 137, 5, 201, 124, 228, 207, 208, 209, 229, 122, 36, 95, 230, 231, 232, 188, 203, 204, 205, 206, 202, 76, 212, 213, 214, 215, 211, 138, 254, 250, 251, 239, 161, 162, 21, 160, 245, 246, 246, 248, 240, 227, 176, 223, 157, 252, 158, 159, 155, 235, 249, 164, 236, 237, 238, 234, 218, 219, 222, 221, 220, 75, 217, 138, 17 };
@@ -275,7 +319,7 @@ string Video(string bvid, const string &in path, dictionary &MetaData, array<dic
 	JsonValue root;
 	int qn = 127;
 	string quality;
-	string cid;
+	string cid = parse(path, "cid");
 	int p = parseInt(parse(path, "p", "1"));
 	bool ispgc = false;
 	string webUrl = path;
@@ -288,6 +332,14 @@ string Video(string bvid, const string &in path, dictionary &MetaData, array<dic
 		if (root["code"].asInt() == 0) {
 			JsonValue data = root["data"];
 			aid = data["aid"].asInt();
+			if (!cid.empty()) {
+				for (uint i = 0; i < data["pages"].size(); i++) {
+					if (data["pages"][i]["cid"].asString() == cid) {
+						p = i + 1;
+						break;
+					}
+				}
+			}
 			cid = data["pages"][p-1]["cid"].asString();
 			title = data["pages"][p-1]["part"].asString();
 			MetaData["author"] = data["owner"]["name"].asString();
@@ -650,13 +702,20 @@ array<dictionary> spaceVideo(string path) {
 	int ps = 50;
 	int pn = 1;
 	string baseurl = "/x/space/wbi/arc/search?";
-	baseurl += "mid=" + HostRegExpParse(path, "/([0-9]+)");
-	baseurl += "&ps=" + ps;
-	baseurl += "&tid=" + parse(path, "tid", "0");
-	baseurl += "&keyword=" + parse(path, "keyword");
-	baseurl += "&order=" + parse(path, "order", "pubdate");
+	string params1;
+	string params2;
+	params1 += "keyword=" + parse(path, "keyword");
+	params1 += "&mid=" + HostRegExpParse(path, "/([0-9]+)");
+	params1 += "&order=" + parse(path, "order", "pubdate");
+
+	params2 += "&ps=" + ps;
+	params2 += "&tid=" + parse(path, "tid", "0");
 	while (true) {
-		string url = baseurl + "&pn=" + pn;
+		string params = params1 + "&pn=" + pn + params2;
+		string w_rid = encWbi(params);
+		params += "&w_rid=" + w_rid;
+
+		string url = baseurl + params;
 		string res = apiPost(url);
 		if (!res.empty()) {
 			JsonReader Reader;
@@ -1044,7 +1103,7 @@ array<dictionary> Banggumi(string id, string type) {
 					video["title"] = "【" + item["badge"].asString() + "】" + item["share_copy"].asString();
 				}
 				video["duration"] = item["duration"].asInt();
-				video["url"] = "https://www.bilibili.com/video/" + item["bvid"].asString() + "?isfromlist=true";
+				video["url"] = "https://www.bilibili.com/video/" + item["bvid"].asString() + "?isfromlist=true&cid=" + item["cid"].asString();
 				videos.insertLast(video);
 			}
 		}
