@@ -6,7 +6,7 @@
 
 [下载项目](https://github.com/chen310/BilibiliPotPlayer/archive/refs/heads/master.zip)
 
-将项目 `Media/PlayParse` 路径下的 `MediaPlayParse - Bilibili.as` 和 `MediaPlayParse - Bilibili.ico` 两个文件复制到 `{PotPlayer 安装路径}\Extension\Media\PlayParse` 文件夹下。
+将项目 `Media/PlayParse` 路径下的 `MediaPlayParse - Bilibili.as`、`MediaPlayParse - Bilibili.ico` 和 `Bilibili_Config.json` 三个文件复制到 `{PotPlayer 安装路径}\Extension\Media\PlayParse` 文件夹下。
 
 `MediaPlayParse - Bilibili.as` 提供了解析 `Bilibili` 链接的功能。
 
@@ -18,9 +18,9 @@
 
 ## 登录
 
-打开 PotPlayer，按 <kbd>F5</kbd> 打开选项，点击`扩展功能`下的`媒体播放列表/项目`，再点击 `Bilibili`，然后打开`账户设置`，在 `Cookie` 一栏粘贴你的 Bilibili Cookie。
+找到刚刚复制过去的配置文件 `Bilibili_Config.json`，填写 Cookie 等设置内容。 打开 PotPlayer，按 <kbd>F5</kbd> 打开选项，点击`扩展功能`下的`媒体播放列表/项目`，再点击 `Bilibili`，然后打开`账户设置`，填写配置文件路径，如 `D:\DAUM\PotPlayer\Extension\Media\PlayParse\Bilibili_Config.json`。每次修改完配置文件，可能都要重启 PotPlayer 才能生效。
 
-![Login](https://cdn.jsdelivr.net/gh/chen310/BilibiliPotPlayer/public/login.png)
+![Settings](https://cdn.jsdelivr.net/gh/chen310/BilibiliPotPlayer/public/settings.png)
 
 点击测试按钮，如果弹出账号信息，就说明登录成功。
 
@@ -28,28 +28,7 @@
 
 ### Cookies 获取
 
-<small>参阅：<a href="https://github.com/XiaoMiku01/bili-live-heart/blob/master/doc_old/bili.md">B 站 Cookie 获取教程</a></small>
-
-- 打开你所用浏览器的**无痕模式**
-  **如果还是抓不到就把无痕模式关了再试试！**
-- 第二步：
-  - 在**无痕窗口**进入任意一个直播间
-  - 在直播间页面点击右上角登录自己的 B 站账号
-- 第三步：
-
-  - 点击键盘`F12`或者`鼠标右键`->检查，进入开发者工具
-  - 点击`网络`/`NetWork`选项卡
-
-  ![网络/Network](http://i0.hdslb.com/bfs/album/4717448339d26a412ba23215d3ce674c549adf4f.png)
-
-  - 进入该选项卡后，键盘`F5`或浏览器左上角刷新页面
-  - 在数据包中找到 **heartBeat** 或 **webHeartBeat**，点击找到请求头中的 **cookie** 项，并复制保留（图中浅蓝色部分）填写到插件账号设置的 Cookie 一栏中
-
-  ![cookie](http://i0.hdslb.com/bfs/album/01c052ec17757a34f6a256f03523efa89c3e4d56.jpg)
-
-PS:有了 cookie 能操作 B 站账号的大部分功能，切勿泄露或分享出去
-
-**如果后续出现报错,请关闭无痕模式抓 cookie**
+[获取Cookie](https://github.com/chen310/BilibiliPotPlayer/issues/62#issuecomment-1841909583)
 
 ## 使用方法
 
@@ -72,6 +51,12 @@ PS:有了 cookie 能操作 B 站账号的大部分功能，切勿泄露或分享
 勾选`跳略播放`和`章节名称`，并在名称列表中追加`哔哩哔哩-片头`和`哔哩哔哩-片尾`两项，每一项之间用英文分号`;`隔开。
 
 ![Skip_Settings](https://cdn.jsdelivr.net/gh/chen310/BilibiliPotPlayer/public/skip_2.png)
+
+### 在列表中显示缩略图
+
+按 <kbd>F6</kbd> 打开播放列表，点击鼠标右键，点击`样式`，选择`显示缩略图`，即可显示视频的缩略图。
+
+![Thumbnail](https://cdn.jsdelivr.net/gh/chen310/BilibiliPotPlayer/public/thumbnail.png)
 
 ### 创建自动更新的播放列表
 
