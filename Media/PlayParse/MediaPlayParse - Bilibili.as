@@ -1476,8 +1476,9 @@ array<dictionary> Recommend(uint page) {
 }
 
 int getItag(int qn) {
-	array<int> qns = {10000, 400, 250, 150, 80};
-	int idx = qns.find(qn);
+	array<int> qns = {30000, 20000, 10000, 400, 250, 150, 80};
+	array<int> tis = {101,272,303,248,247,244,243};
+	int idx = tis.find(qn);
 	if (idx >= 0) {
 		return idx;
 	}
@@ -1529,6 +1530,16 @@ string getCodec(int codecid) {
 	int idx = codecids.find(codecid);
 	if (idx >= 0) {
 		return codec[idx];
+	}
+	return "未知";
+}
+
+string getLiveQn(int qn) {
+	array<int>qns = {80, 150, 250, 400, 10000, 20000, 30000};
+	array<string> qualities = {"流畅","高清","超清","蓝光","原画","4K","杜比"};
+	int idx = qns.find(qn);
+	if (idx>=0){
+		return qualities[idx];
 	}
 	return "未知";
 }
@@ -1602,53 +1613,55 @@ string Live(string id, const string &in path, dictionary &MetaData, array<dictio
 		}
         JsonValue playurlInfo = Root["data"]["playurl_info"];
 		qn = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["current_qn"].asInt();
-		string flvHost = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["host"].asString();
-		string flvBaseUrl = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["base_url"].asString();
-		string flvExtra = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["extra"].asString();
-		string flvUrl = flvHost+flvBaseUrl+flvExtra;
-		log("flvUrl",flvUrl);
+		// flv stream
+		// string flvUrl = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["host"].asString()+playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["base_url"].asString()+playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["extra"].asString();
+		// url = flvUrl;
+		// ts stream
 		string hlsTsBaseUrl = playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["base_url"].asString() ;
-		// if (hlsTsBaseUrl.findFirst("_bluray",0)!=-1){
-		//     string realHlsTsBaseUrl= hlsTsBaseUrl.erase(hlsTsBaseUrl.findFirst("_bluray",0),7);
-		// }else{
-		//     string realHlsTsBaseUrl=hlsTsBaseUrl;
-		// }
-		// string tsUrl = playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][1]["host"].asString()+hlsTsBaseUrl+playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][1]["extra"].asString();
+		if (hlsTsBaseUrl.findFirst("_bluray",0)!=-1){
+		    hlsTsBaseUrl.erase(hlsTsBaseUrl.findFirst("_bluray",0),7);
+		}
+		string tsUrl = playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["host"].asString()+hlsTsBaseUrl+playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["extra"].asString();
+		url = tsUrl;
+		// fmp4 stream
 		// string hlsFmp4BaseUrl = playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["base_url"].asString() ;
 		// if (hlsFmp4BaseUrl.findFirst("_bluray",0)!=-1){
-		//     string realHlsFmp4BaseUrl=hlsFmp4BaseUrl.erase(hlsFmp4BaseUrl.findFirst("_bluray",0),7);
-		// }else{
-		//     string realHlsFmp4BaseUrl=hlsFmp4BaseUrl;
+		//     hlsFmp4BaseUrl.erase(hlsFmp4BaseUrl.findFirst("_bluray",0),7);
 		// }
-		// string fmp4Url = playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][1]["host"].asString()+hlsFmp4BaseUrl+playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][1]["extra"].asString();
-		// log("tsUrl",tsUrl);
-		JsonValue qualities = playurlInfo["playurl"]["g_qn_desc"];
-		if (enable_qualities && @QualityList !is null) {
+		// string fmp4Url = playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][0]["host"].asString()+hlsFmp4BaseUrl+playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][1]["extra"].asString();
+		// url = fmp4Url;
+		JsonValue qualities = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["accept_qn"];
+		log("url",url);
+		if ( @QualityList !is null) {
 			for (uint i = 0; i < qualities.size(); i++) {
-				int quality = qualities[i]["qn"].asInt();
+				int quality = qualities[i].asInt();
 				dictionary qualityitem;
-				// dictionary qualityitem2;
-				// dictionary qualityitem3;
-				// string backup_url;
-				qualityitem["url"] = flvUrl;
-				// qualityitem2["url"] = tsUrl;
-				// qualityitem3["url"] = flvUrl;
+				qualityitem["url"] = tsUrl;
+				 if (quality == qn){
+				 	qualityitem["url"] = tsUrl;
+				 }else{
+				 	string quality_res = post("https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=" + room_id + "&no_playurl=0&mask=0&qn=" + quality + "&platform=web&protocol=0,1&format=0,1,2&codec=0&dolby=5&panorama=1&p2p=false");
+				 	JsonValue temp;
+				 	if (Reader.parse(quality_res, temp) && temp.isObject()){
+				 		JsonValue qyality_data = temp["data"]["playurl_info"];
+						// flv stream
+						// string eFlvUrl = qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][0]["host"].asString()+qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["base_url"].asString()+qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][0]["extra"].asString();
+						// qualityitem["url"]=eFlvUrl;
+						// ts stream
+						string eTsUrl = qyality_data["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["host"].asString()+qyality_data["playurl"]["stream"][1]["format"][0]["codec"][0]["base_url"].asString()+qyality_data["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["extra"].asString();
+						qualityitem["url"]=eTsUrl;
+						// fmp4 stream
+						// string eFmp4Url = qyality_data["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][0]["host"].asString()+qyality_data["playurl"]["stream"][1]["format"][1]["codec"][0]["base_url"].asString()+qyality_data["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][0]["extra"].asString();
+				 		// qualityitem["url"]=eFmp4Url;
+				 	}
+				 }
 	
 				int itag = getItag(quality);
-				qualityitem["quality"] = qualities[i]["desc"].asString();
+				qualityitem["quality"] = getLiveQn(quality);
 				qualityitem["qualityDetail"] = qualityitem["quality"];
 				qualityitem["itag"] = itag;
 				QualityList.insertLast(qualityitem);
 
-				// qualityitem2["quality"] =  "- " + qualities[i]["desc"].asString() + " 备份";
-				// qualityitem2["qualityDetail"] = qualityitem2["quality"];
-				// qualityitem2["itag"] = itag + 20;
-				// QualityList.insertLast(qualityitem2);
-
-				// qualityitem3["quality"] =  "- " + qualities[i]["desc"].asString() + " 备份";
-				// qualityitem3["qualityDetail"] = qualityitem3["quality"];
-				// qualityitem3["itag"] = itag + 40;
-				// QualityList.insertLast(qualityitem3);
 			}
 		}
 		
