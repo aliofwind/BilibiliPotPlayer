@@ -1613,17 +1613,17 @@ string Live(string id, const string &in path, dictionary &MetaData, array<dictio
 		}
         JsonValue playurlInfo = Root["data"]["playurl_info"];
 		qn = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["current_qn"].asInt();
-		// flv stream
-		// string flvUrl = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["host"].asString()+playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["base_url"].asString()+playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["extra"].asString();
-		// url = flvUrl;
-		// ts stream
+		//flv stream
+		string flvUrl = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["host"].asString()+playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["base_url"].asString()+playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][1]["extra"].asString();
+		url = flvUrl;
+		//ts stream
 		string hlsTsBaseUrl = playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["base_url"].asString() ;
 		if (hlsTsBaseUrl.findFirst("_bluray",0)!=-1){
 		    hlsTsBaseUrl.erase(hlsTsBaseUrl.findFirst("_bluray",0),7);
 		}
 		string tsUrl = playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["host"].asString()+hlsTsBaseUrl+playurlInfo["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["extra"].asString();
 		url = tsUrl;
-		// fmp4 stream
+		//fmp4 stream
 		// string hlsFmp4BaseUrl = playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["base_url"].asString() ;
 		// if (hlsFmp4BaseUrl.findFirst("_bluray",0)!=-1){
 		//     hlsFmp4BaseUrl.erase(hlsFmp4BaseUrl.findFirst("_bluray",0),7);
@@ -1631,36 +1631,52 @@ string Live(string id, const string &in path, dictionary &MetaData, array<dictio
 		// string fmp4Url = playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][0]["host"].asString()+hlsFmp4BaseUrl+playurlInfo["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][1]["extra"].asString();
 		// url = fmp4Url;
 		JsonValue qualities = playurlInfo["playurl"]["stream"][0]["format"][0]["codec"][0]["accept_qn"];
-		log("url",url);
+		log("Flvurl",flvUrl);
+		log("Tsurl",tsUrl);
+		// log("Fmp4url",fmp4Url);
 		if ( @QualityList !is null) {
 			for (uint i = 0; i < qualities.size(); i++) {
 				int quality = qualities[i].asInt();
-				dictionary qualityitem;
-				qualityitem["url"] = tsUrl;
+				dictionary qualityitemFlv;
+				dictionary qualityitemTs;
+				// dictionary qualityitemFmp4;
 				 if (quality == qn){
-				 	qualityitem["url"] = tsUrl;
+				 	qualityitemFlv["url"] = flvUrl;
+					qualityitemTs["url"] = tsUrl;
+					// qualityitemFmp4["url"] = fmp4Url;
 				 }else{
 				 	string quality_res = post("https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo?room_id=" + room_id + "&no_playurl=0&mask=0&qn=" + quality + "&platform=web&protocol=0,1&format=0,1,2&codec=0&dolby=5&panorama=1&p2p=false");
 				 	JsonValue temp;
 				 	if (Reader.parse(quality_res, temp) && temp.isObject()){
 				 		JsonValue qyality_data = temp["data"]["playurl_info"];
-						// flv stream
-						// string eFlvUrl = qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][0]["host"].asString()+qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["base_url"].asString()+qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][0]["extra"].asString();
-						// qualityitem["url"]=eFlvUrl;
-						// ts stream
+						//flv stream
+						string eFlvUrl = qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][0]["host"].asString()+qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["base_url"].asString()+qyality_data["playurl"]["stream"][0]["format"][0]["codec"][0]["url_info"][0]["extra"].asString();
+						qualityitemFlv["url"]=eFlvUrl;
+						//ts stream
 						string eTsUrl = qyality_data["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["host"].asString()+qyality_data["playurl"]["stream"][1]["format"][0]["codec"][0]["base_url"].asString()+qyality_data["playurl"]["stream"][1]["format"][0]["codec"][0]["url_info"][0]["extra"].asString();
-						qualityitem["url"]=eTsUrl;
-						// fmp4 stream
+						qualityitemTs["url"]=eTsUrl;
+						//fmp4 stream
 						// string eFmp4Url = qyality_data["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][0]["host"].asString()+qyality_data["playurl"]["stream"][1]["format"][1]["codec"][0]["base_url"].asString()+qyality_data["playurl"]["stream"][1]["format"][1]["codec"][0]["url_info"][0]["extra"].asString();
-				 		// qualityitem["url"]=eFmp4Url;
+				 		// qualityitemFmp4["url"]=eFmp4Url;
 				 	}
 				 }
 	
-				int itag = getItag(quality);
-				qualityitem["quality"] = getLiveQn(quality);
-				qualityitem["qualityDetail"] = qualityitem["quality"];
-				qualityitem["itag"] = itag;
-				QualityList.insertLast(qualityitem);
+				// int itag = getItag(quality);
+				int flvitag = quality +1;
+				int tsitag = quality +2;
+				// int fmp4itag = quality+3;
+				qualityitemFlv["quality"] = getLiveQn(quality)+"FLV";
+				qualityitemTs["quality"] = getLiveQn(quality)+"TS";
+				// qualityitemFmp4["quality"] = getLiveQn(quality)+"FMP4";
+				qualityitemFlv["qualityDetail"] = qualityitemFlv["quality"];
+				qualityitemTs["qualityDetail"] = qualityitemTs["quality"];
+				// qualityitemFmp4["qualityDetail"] = qualityitemFmp4["quality"];
+				qualityitemFlv["itag"] = flvitag;
+				qualityitemTs["itag"] = tsitag;
+				// qualityitemFlv["itag"] = fmp4itag;
+				QualityList.insertLast(qualityitemFlv);
+				QualityList.insertLast(qualityitemTs);
+				// QualityList.insertLast(qualityitemFmp4);
 
 			}
 		}
