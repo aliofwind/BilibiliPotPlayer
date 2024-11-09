@@ -128,6 +128,8 @@ class Config {
 	bool showRecommendedVideos = true;
 	bool debug = false;
 	bool liveHls = false;
+	bool avcOnly = false;
+
 	string danmakuUrl;
 	string subtitleUrl;
 };
@@ -536,10 +538,19 @@ string Video(string bvid, const string &in path, dictionary &MetaData, array<dic
 						qualityitem["url"] = url;
 						int itag = videos[i]["id"].asInt() * 10 + codecid;
 						int trueitag = getTrueItag(itag);
-						qualityitem["quality"] = getVideoquality(quality) + getCodec(codecid);
-						qualityitem["qualityDetail"] = qualityitem["quality"];
-						qualityitem["itag"] = trueitag;
-						QualityList.insertLast(qualityitem);
+						if (ConfigData.avcOnly) {
+							if (codecid == 7){
+								qualityitem["quality"] = getVideoquality(quality) + getCodec(codecid);
+								qualityitem["qualityDetail"] = qualityitem["quality"];
+								qualityitem["itag"] = trueitag;
+								QualityList.insertLast(qualityitem);
+							}
+						}else{
+							qualityitem["quality"] = getVideoquality(quality) + getCodec(codecid);
+							qualityitem["qualityDetail"] = qualityitem["quality"];
+							qualityitem["itag"] = trueitag;
+							QualityList.insertLast(qualityitem);
+						}
 					}
 				}
 				if (data["dash"]["dolby"]["audio"].isArray()){
