@@ -128,7 +128,7 @@ class Config {
 	bool showRecommendedVideos = true;
 	bool debug = false;
 	bool liveHls = false;
-	bool avcOnly = false;
+	bool disableAvcOnly = true;
 
 	string danmakuUrl;
 	string subtitleUrl;
@@ -182,6 +182,9 @@ Config ReadConfigFile(string file) {
 		}
 		if (root["liveHls"].isBool()) {
 			config.liveHls = root["liveHls"].asBool();
+		}
+		if (root["disableAvcOnly"].isBool()) {
+			config.disableAvcOnly = root["disableAvcOnly"].asBool();
 		}
 		if (!config.danmakuServer.empty()) {
 			config.danmakuUrl = config.danmakuServer +  "/subtitle?font=" + HostUrlEncode(config.danmakuFont) + "&font_size=" + config.danmakuFontSize + "&alpha=" + config.danmakuOpacity + "&display_area=" + config.danmakuDisplayArea + "&duration_marquee=" + config.danmakuStayTime + "&duration_still=" + config.danmakuStayTime + "&cid=";
@@ -534,22 +537,26 @@ string Video(string bvid, const string &in path, dictionary &MetaData, array<dic
 						int quality = videos[i]["id"].asInt();
 						dictionary qualityitem;
 						int codecid = videos[i]["codecid"].asInt();
-						url = videos[i]["baseUrl"].asString();
-						qualityitem["url"] = url;
-						int itag = videos[i]["id"].asInt() * 10 + codecid;
-						int trueitag = getTrueItag(itag);
-						if (ConfigData.avcOnly) {
+						if (ConfigData.disableAvcOnly) {
+							url = videos[i]["baseUrl"].asString();
+							qualityitem["url"] = url;
+							int itag = videos[i]["id"].asInt() * 10 + codecid;
+							int trueitag = getTrueItag(itag);
+							qualityitem["quality"] = getVideoquality(quality) + getCodec(codecid);
+							qualityitem["qualityDetail"] = qualityitem["quality"];
+							qualityitem["itag"] = trueitag;
+							QualityList.insertLast(qualityitem);
+						}else{
 							if (codecid == 7){
+								url = videos[i]["baseUrl"].asString();
+								qualityitem["url"] = url;
+								int itag = videos[i]["id"].asInt() * 10 + codecid;
+								int trueitag = getTrueItag(itag);
 								qualityitem["quality"] = getVideoquality(quality) + getCodec(codecid);
 								qualityitem["qualityDetail"] = qualityitem["quality"];
 								qualityitem["itag"] = trueitag;
 								QualityList.insertLast(qualityitem);
 							}
-						}else{
-							qualityitem["quality"] = getVideoquality(quality) + getCodec(codecid);
-							qualityitem["qualityDetail"] = qualityitem["quality"];
-							qualityitem["itag"] = trueitag;
-							QualityList.insertLast(qualityitem);
 						}
 					}
 				}
@@ -626,12 +633,13 @@ string Video(string bvid, const string &in path, dictionary &MetaData, array<dic
 								}
 							}
 						}
-						int itag = quality * 10 + quality_codecid;
-						int trueitag = getTrueItag(itag);
-						qualityitem["quality"] = getVideoquality(quality) + getCodec(quality_codecid);
-						qualityitem["qualityDetail"] = qualityitem["quality"];
-						qualityitem["itag"] = trueitag;
-						QualityList.insertLast(qualityitem);
+							int itag = quality * 10 + quality_codecid;
+							int trueitag = getTrueItag(itag);
+							qualityitem["quality"] = getVideoquality(quality) + getCodec(quality_codecid);
+							qualityitem["qualityDetail"] = qualityitem["quality"];
+							qualityitem["itag"] = trueitag;
+							QualityList.insertLast(qualityitem);
+
 					}
 					if (QualityList.length() == 1) {
 						dictionary qualityitem2;

@@ -20,5 +20,5 @@
     "showRecommendedVideos": true,
     "debug": false,
     "liveHls": false,
-    "avcOnly":true
+    "disableAvcOnly": true
 }
